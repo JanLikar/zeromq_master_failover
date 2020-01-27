@@ -33,7 +33,7 @@ fn main() {
 				store = m.as_str().unwrap().to_string();
 				println!("Received sync.", m);
 			},
-			Err(zmq::Error::EAGAIN) => println!("Read timeout."),
+			Err(zmq::Error::EAGAIN) => (),
 			Err(e) => println!("Error while receiving a message: {}", e),
 		};
 
