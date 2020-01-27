@@ -1,0 +1,18 @@
+[package]
+name = "zeromq_master_failover"
+version = "0.1.0"
+authors = ["Jan Likar <jan.likar@protonmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+zmq = "^0.9"
+
+[[bin]]
+name = "client"
+src = "src/client.rs"
+
+[[bin]]
+name = "zeromq_master_failover"
+src = "src/main.rs"
