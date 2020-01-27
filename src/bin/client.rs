@@ -1,3 +1,5 @@
+use dialoguer::Input;
+
 use std::env;
 use std::thread;
 
@@ -14,20 +16,34 @@ fn main() {
 
 	let zmq_ctx = zmq::Context::new();
 
-	let socket = zmq_ctx.socket(zmq::REQ).unwrap();
-	socket.connect(&format!("tcp://localhost:{}", &port1));
-	socket.connect(&format!("tcp://localhost:{}", &port2));
+	let socket1 = zmq_ctx.socket(zmq::REQ).unwrap();
+	socket1.connect(&format!("tcp://localhost:{}", &port1));
+	socket1.set_rcvtimeo(3000).unwrap();
+	socket1.set_sndtimeo(3000).unwrap();
 
+	let socket2 =zmq_ctx.socket(zmq::REQ).unwrap();
+	socket2.connect(&format!("tcp://localhost:{}", &port2));
+	socket2.set_rcvtimeo(3000).unwrap();
+	socket2.set_sndtimeo(3000).unwrap();
 
-	socket.send("SET fpppsafpafs", 0);
-	socket.recv_msg(0);
+	let sockets = [socket1, socket2];
 
-	// thread::sleep_ms(5000);
+	loop {
+		let input = Input::<String>::new().with_prompt(">>> ").interact().unwrap();
 
-	socket.send("GET", 0);
-	println!("{:?}", String::from_utf8(socket.recv_msg(0).unwrap().to_vec()).unwrap());
-	socket.send("GET", 0);
-	println!("{:?}", String::from_utf8(socket.recv_msg(0).unwrap().to_vec()).unwrap());
-	socket.send("GET", 0);
-	println!("{:?}", String::from_utf8(socket.recv_msg(0).unwrap().to_vec()).unwrap());
+		for socket in sockets.iter() {
+			match socket.send(&input, 0) {
+				Ok(_) => {
+					match socket.recv_msg(0) {
+						Ok(m) => {
+							println!("{:?}", String::from_utf8(m.to_vec()).unwrap());
+							break;
+						},
+						Err(_) => (),
+					};
+				},
+				Err(_) => (),
+			}
+		}
+	}
 }

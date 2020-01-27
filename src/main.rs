@@ -25,13 +25,14 @@ fn main() {
 	subscriber.connect(&format!("tcp://localhost:{}", &peer_port));
 	subscriber.set_subscribe(b"");
 
-	loop {
-		println!("Stored {:?}", store);
+	println!("Stored {:?}", store);
 
+	loop {
 		match subscriber.recv_msg(zmq::DONTWAIT) {
 			Ok(m) => {
 				store = m.as_str().unwrap().to_string();
-				println!("Received sync.", m);
+				println!("Received sync.");
+				println!("Stored {:?}", store);
 			},
 			Err(zmq::Error::EAGAIN) => (),
 			Err(e) => println!("Error while receiving a message: {}", e),
@@ -45,6 +46,7 @@ fn main() {
 						store = String::from_utf8(m[4..].to_vec()).unwrap();
 						command_socket.send("OK", 0);
 						publisher.send(&store, 0);
+						println!("Stored {:?}", store);
 					},
 					"GET" => {
 						println!("Received a GET command.");
@@ -60,6 +62,6 @@ fn main() {
 			Err(e) => println!("Error while receiving a message: {}", e),
 		};
 
-		thread::sleep_ms(5000);
+		thread::sleep_ms(1000);
 	}
 }
