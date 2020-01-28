@@ -60,7 +60,8 @@ fn handle_command(message: String, store: &mut HashMap<String, (DateTime<Utc>, S
 	match parsed_message.as_slice() {
 		["SET", key, value, ttl] => {
 			let key = key.to_string();
-			let valid_until = Utc::now().checked_add_signed(Duration::seconds(ttl.parse::<i32>().unwrap().into())).unwrap();
+			let ttl = ttl.parse::<i32>().unwrap();
+			let valid_until = Utc::now().checked_add_signed(Duration::seconds(ttl.into())).unwrap();
 
 			println!("Received a SET command.");
 
@@ -78,7 +79,7 @@ fn handle_command(message: String, store: &mut HashMap<String, (DateTime<Utc>, S
 			
 			if !from_peer {
 				println!("Sending sync.");
-				command_socket.send(&message, 0).unwrap();
+				command_socket.send("OK", 0).unwrap();
 				publisher.send(&message, 0).unwrap();
 			}
 
@@ -100,6 +101,11 @@ fn handle_command(message: String, store: &mut HashMap<String, (DateTime<Utc>, S
 			else {
 				command_socket.send("NO", 0).unwrap();
 			};
+		},
+		["KEYS"] => {
+			println!("Received a KEYS command.");
+			let keys = store.keys().map(|k| k.to_string()).collect::<Vec<String>>().join(" ");
+			command_socket.send(&format!("OK {}", keys), 0).unwrap();
 		},
 		_ => {
 			println!("Received an invalid command.");
