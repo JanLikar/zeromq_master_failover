@@ -1,7 +1,21 @@
 # zeromq_master_failover
-An experiment in implementing master failover with ZeroMQ.
+An experiment in implementing a multi-master distributed key-value store with failover using ZeroMQ.
 
 The system is designed to be highly available and only eventually consistent.
+
+## Semantics
+Each of the entries has an associated TTL and is evicted once the TTL is reached.
+
+This enables a simplified approach to dealing with conflict resolution -- the entry with a validity that is the furthest in the future always wins.
+
+## Protocol
+Nodes currently implement three commands:
+
+    SET key val ttl
+    GET key
+    KEYS
+
+On success, they return messages prepended with `OK`, `ERR` on error and `NO` if key is not present.
 
 ## Running
 Run in separate terminals.
